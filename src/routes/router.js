@@ -32,15 +32,18 @@ function evaluateTemplate(template) {
    * @param {express.NextFunction} next
    */
   const fn = function(req, res, next) {
-    if (req.matched === false) {
-      next();
-      return;
-    }
+    
+    //we don't check if req.matched is false here, as
+    //we want to evaulate every template when this handler is called more than once
 
     req.template = {
       req: evaluate(template.req, { template, req }),
       res: evaluate(template.res, { template, req })
     };
+
+    //set req.matched to true here to make sure we always do the checks
+    req.matched = true;
+
     next();
   };
   return fn;
@@ -200,10 +203,12 @@ export default function(templates) {
 
     const subRouter = express.Router();
 
+    //set the handlers here so we do not reset them when we have multiple templates
+    let handlers = [];
+
     for (const userTemplate of userTemplates) {
       let template = _.merge({}, defaultTemplate, userTemplate);
       const requestTemplate = evaluate(template.req);
-      let handlers = [];
       const options = template.options;
       if (options) {
         if (options.delay) {
@@ -223,6 +228,9 @@ export default function(templates) {
       );
       subRouter[requestTemplate.method](requestTemplate.path, handlers);
     }
+
+    //move this here as we only want to set the handlers once we have added them all
+    subRouter[requestTemplate.method](requestTemplate.path, handlers);
 
     router.all(`/${key}`, defaultReqHandler(userDefaults.req));
     router.use(`/${key}`, subRouter);
