@@ -29,7 +29,7 @@ test("complex objects", () => {
     }
   };
 
-  let expected = {
+  let other = {
     a: "a",
     b: ["a", 1],
     c: true,
@@ -42,5 +42,5 @@ test("complex objects", () => {
     }
   };
 
-  expect(isEqual(value, expected)).toBe(true);
+  expect(isEqual(value, other)).toBe(true);
 });
