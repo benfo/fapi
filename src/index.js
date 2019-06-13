@@ -6,7 +6,7 @@ import _ from "lodash";
 
 const defaultOptions = {
   path: "/api",
-  swagger: {    
+  swagger: {
     enabled: true,
     title: "fapi",
     description: "",
@@ -17,7 +17,6 @@ const defaultOptions = {
 
 const server = (templates, options) => {
   const ops = _.merge({}, defaultOptions, options);
-  console.log(ops);
   const app = express();
   app.use(defaults());
 
