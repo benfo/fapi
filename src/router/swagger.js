@@ -62,10 +62,31 @@ export default function(templates, options) {
 
           const swaggerQueryParams = template.req.query
             ? Object.keys(template.req.query).map(key => {
-                return {
+                const _swagger = _.get(
+                  template,
+                  `_swagger.req.query.${key}`,
+                  {}
+                );
+
+                return _.merge({}, _swagger, {
                   in: "query",
                   name: key
-                };
+                });
+              })
+            : [];
+
+          const swaggerHeaderParams = template.req.headers
+            ? Object.keys(template.req.headers).map(key => {
+                const _swagger = _.get(
+                  template,
+                  `_swagger.req.headers.${key}`,
+                  {}
+                );
+
+                return _.merge({}, _swagger, {
+                  in: "header",
+                  name: key
+                });
               })
             : [];
 
@@ -79,20 +100,24 @@ export default function(templates, options) {
 
           const bodyParams =
             template.req.method === "post"
-              ? [{ in: "body", name: "body" }]
+              ? [
+                  _.merge({}, _.get(template, "_swagger.req.body"), {
+                    in: "body",
+                    name: "body"
+                  })
+                ]
               : [];
 
           const swaggerResponses = {};
           if (_.isNumber(template.res.status))
             swaggerResponses[template.res.status] = { description: "" };
-
           const pathObj = paths[swaggerPath] || {};
           pathObj[method] = {
             tags: [swaggerPath],
-            description: "",
             parameters: [
               ...swaggerQueryParams,
               ...swaggerPathParams,
+              ...swaggerHeaderParams,
               ...bodyParams
             ],
             responses: swaggerResponses
@@ -109,6 +134,7 @@ export default function(templates, options) {
   swaggerSpec["paths"] = paths;
 
   const router = express.Router();
+  // console.log(JSON.stringify(swaggerSpec));
   router.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   return router;
 }

@@ -5,7 +5,7 @@ import { invoke } from "../utils";
 
 export function initializeTemplates(templates) {
   const templateDefaults = {
-    req: { method: "get", path: "/" },
+    req: { method: "get", path: "/", headers: {} },
     res: { body: null, status: 200 }
   };
 
@@ -64,6 +64,8 @@ function buildRouter(templates) {
 }
 
 export default function(templates) {
-  const initializedTemplates = initializeTemplates(templates);
+  const initializedTemplates = initializeTemplates(
+    _.omitBy(templates, (v, k) => _.startsWith(k, "_"))
+  );
   return buildRouter(initializedTemplates);
 }
